@@ -1,0 +1,9 @@
+Package: org.evendev.dne
+Name: Dark'n'epic
+Depends: mobilesubstrate
+Version: 1.0
+Architecture: iphoneos-arm
+Description: epic dark mode for settings app
+Maintainer: EvenDev
+Author: EvenDev
+Section: Tweaks
