@@ -1,4 +1,5 @@
 #import <UIKit/UIKit.h>
+#import <CSColorPicker/CSColorPicker.h>
 
 #define PLIST_PATH @"/var/mobile/Library/Preferences/org.evendev.darknepic.plist"
 
@@ -12,16 +13,46 @@ inline bool GetPrefInt(NSString *key)
 return [[[NSDictionary dictionaryWithContentsOfFile:PLIST_PATH] valueForKey:key] intValue];
 }
 
+inline NSString *GetPrefString(NSString *key) {
+    NSDictionary *prefs = [NSDictionary dictionaryWithContentsOfFile:PLIST_PATH] ? : [NSDictionary new];
+    return prefs[key];
+}
+
+%hook UIColor
+
++(id)systemBlueColor {
+  if(GetPrefBool(@"customTint") == true) {
+   UIColor *tintColor = [UIColor colorFromHexString: GetPrefString(@"theTintColor")];
+    return tintColor;
+}
+return %orig;
+}
+
++(id) systemGreenColor {
+  if(GetPrefBool(@"customTint") == true) {
+   UIColor *tintColor = [UIColor colorFromHexString: GetPrefString(@"theTintColor")];
+    return tintColor;
+}
+return %orig;
+}
+
+%end
+
 %hook UITableViewCell
 
 -(void)layoutSubviews {
     %orig;
+    if (GetPrefBool(@"customCell")) {
+        self.backgroundColor = [UIColor colorFromHexString:GetPrefString(@"theCellColor")];
+    } else {
     if (GetPrefBool(@"darkMode")) {
     self.backgroundColor = [UIColor colorWithRed:0.15 green:0.15 blue:0.15 alpha:1];
      //MSHookIvar<UIColor*>(self, "_selectionTintColor") = [UIColor colorWithRed:0.2 green:0.2 blue:0.2 alpha:1];
      UIView *selectedColor = [[UIView alloc] init];
      selectedColor.backgroundColor = [UIColor blueColor];
+     selectedColor.frame.size = CGSizeMake(10000, 10000);
      self.selectedBackgroundView = selectedColor;
+}
 }
 }
 
@@ -58,8 +89,12 @@ return [[[NSDictionary dictionaryWithContentsOfFile:PLIST_PATH] valueForKey:key]
 %hook UISearchBar
 -(UITextField *)searchField {
         UITextField* field = %orig;
+        if (GetPrefBool(@"customText")) {
+        field.textColor = [UIColor colorFromHexString:GetPrefString(@"theTextColor")];
+        } else {
         if (GetPrefBool(@"darkMode")) {
-        field.textColor = [UIColor whiteColor];
+       field.textColor = [UIColor whiteColor];
+        }
         }
         return field;
 }
@@ -68,9 +103,13 @@ return [[[NSDictionary dictionaryWithContentsOfFile:PLIST_PATH] valueForKey:key]
 %hook UITextField
 -(void)didMoveToWindow{
      %orig;
+        if (GetPrefBool(@"customText")) {
+        self.textColor = [UIColor colorFromHexString:GetPrefString(@"theTextColor")];
+        } else {
         if (GetPrefBool(@"darkMode")) {
-     self.textColor = [UIColor whiteColor];
-     }
+        self.textColor = [UIColor whiteColor];
+        }
+        }
 }
 %end
 
@@ -82,9 +121,13 @@ return [[[NSDictionary dictionaryWithContentsOfFile:PLIST_PATH] valueForKey:key]
 
 -(void)layoutSubviews {
         %orig;
+        if (GetPrefBool(@"customText")) {
+        self.foregroundColor = [UIColor colorFromHexString:GetPrefString(@"theTextColor")];
+        } else {
         if (GetPrefBool(@"darkMode")) {
         self.foregroundColor = [UIColor whiteColor];
-         }
+        }
+        }
 }
 %end
 
@@ -96,9 +139,13 @@ return [[[NSDictionary dictionaryWithContentsOfFile:PLIST_PATH] valueForKey:key]
 
 -(void)layoutSubviews {
         %orig;
+        if (GetPrefBool(@"customText")) {
+        self.foregroundColor = [UIColor colorFromHexString:GetPrefString(@"theTextColor")];
+        } else {
         if (GetPrefBool(@"darkMode")) {
         self.foregroundColor = [UIColor whiteColor];
-         }
+        }
+        }
 }
 
 %end
@@ -110,11 +157,17 @@ return [[[NSDictionary dictionaryWithContentsOfFile:PLIST_PATH] valueForKey:key]
 
 -(void)setText:(id)arg1 {
      %orig;
+        if (GetPrefBool(@"customText")) {
+        if (self.textColor == [UIColor blackColor]) {
+        self.textColor = [UIColor colorFromHexString:GetPrefString(@"theTextColor")];
+       }
+        } else {
         if (GetPrefBool(@"darkMode")) {
      if (self.textColor == [UIColor blackColor]) {
          self.textColor = [UIColor whiteColor];
      }
      }
+   }
 }
 
 %end
@@ -123,11 +176,17 @@ return [[[NSDictionary dictionaryWithContentsOfFile:PLIST_PATH] valueForKey:key]
 
 -(void)setText:(id)arg1 {
      %orig;
+        if (GetPrefBool(@"customText")) {
+        if (self.textColor == [UIColor blackColor]) {
+        self.textColor = [UIColor colorFromHexString:GetPrefString(@"theTextColor")];
+        }
+        } else {
         if (GetPrefBool(@"darkMode")) {
      if (self.textColor == [UIColor blackColor]) {
          self.textColor = [UIColor whiteColor];
      }
-    }
+     }
+   }
 }
 
 %end
@@ -138,8 +197,12 @@ CGFloat inset = 16;
 
 -(void)layoutSubviews {
      %orig;
+      if (GetPrefBool(@"customBackground")) {
+         self.backgroundColor = [UIColor colorFromHexString:GetPrefString(@"theBackgroundColor")];
+      } else {
         if (GetPrefBool(@"darkMode")) {
      self.backgroundColor = [UIColor blackColor];
+     }
      }
      if (GetPrefBool(@"hideSep")) {
      self.separatorColor = [UIColor clearColor];
@@ -185,7 +248,14 @@ CGFloat inset = 16;
         if (GetPrefBool(@"darkMode")) {
     self.barStyle = 1;
     }
-    [self setShadowImage:nil];
+}
+
+-(BOOL)_hidesShadow {
+    if (GetPrefBool(@"hideHair")) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 %end
@@ -243,17 +313,26 @@ CGFloat inset = 16;
 @end
 -(UITextField *)textField {
         UITextField* field = %orig;
+        if (GetPrefBool(@"customText")) {
+        field.textColor = [UIColor colorFromHexString:GetPrefString(@"theTextColor")];
+        } else {
         if (GetPrefBool(@"darkMode")) {
         field.textColor = [UIColor whiteColor];
+        }
         }
         return field;
 }
 -(void)didMoveToWindow{
   %orig;
+        if (GetPrefBool(@"customText")) {
+        self.textField.textColor = [UIColor colorFromHexString:GetPrefString(@"theTextColor")];
+        self.label.textColor = [UIColor colorFromHexString:GetPrefString(@"theTextColor")];
+        } else {
         if (GetPrefBool(@"darkMode")) {
-  self.textField.textColor = [UIColor whiteColor];
-  self.label.textColor = [UIColor whiteColor];
-   }
+        self.textField.textColor = [UIColor whiteColor];
+        self.label.textColor = [UIColor whiteColor];
+        }
+        }
 }
 %end
 
@@ -262,16 +341,24 @@ CGFloat inset = 16;
 @end
 -(UITextField *)_editableTextField {
         UITextField* field = %orig;
+        if (GetPrefBool(@"customText")) {
+        field.textColor = [UIColor colorFromHexString:GetPrefString(@"theTextColor")];
+        } else {
         if (GetPrefBool(@"darkMode")) {
         field.textColor = [UIColor whiteColor];
+        }
         }
         return field;
 }
 -(void)didMoveToWindow{
   %orig;
+        if (GetPrefBool(@"customText")) {
+        MSHookIvar<UITextField*>(self, "_editableTextField").textColor = [UIColor colorFromHexString:GetPrefString(@"theTextColor")];
+        } else {
         if (GetPrefBool(@"darkMode")) {
-  MSHookIvar<UITextField*>(self, "_editableTextField").textColor = [UIColor whiteColor];
-}
+        MSHookIvar<UITextField*>(self, "_editableTextField").textColor = [UIColor whiteColor];
+        }
+        }
 }
 %end
 
@@ -280,15 +367,23 @@ CGFloat inset = 16;
 @end
 -(UITextField *)_editableTextField {
         UITextField* field = %orig;
+        if (GetPrefBool(@"customText")) {
+        field.textColor = [UIColor colorFromHexString:GetPrefString(@"theTextColor")];
+        } else {
         if (GetPrefBool(@"darkMode")) {
         field.textColor = [UIColor whiteColor];
-}
+        }
+        }
         return field;
 }
 -(void)didMoveToWindow{
   %orig;
+        if (GetPrefBool(@"customText")) {
+        MSHookIvar<UITextField*>(self, "_editableTextField").textColor = [UIColor colorFromHexString:GetPrefString(@"theTextColor")];
+        } else {
         if (GetPrefBool(@"darkMode")) {
-  MSHookIvar<UITextField*>(self, "_editableTextField").textColor = [UIColor whiteColor];
-}
+        MSHookIvar<UITextField*>(self, "_editableTextField").textColor = [UIColor whiteColor];
+        }
+        }
 }
 %end

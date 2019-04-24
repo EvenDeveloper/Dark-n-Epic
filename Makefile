@@ -5,6 +5,7 @@ FINALPACKAGE = 1
 TWEAK_NAME = Darknepic
 Darknepic_FILES = Tweak.xm
 Darknepic_PRIVATE_FRAMEWORKS = WiFiKitUI
+Darknepic_LDFLAGS += -lCSColorPicker
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 

@@ -4,7 +4,8 @@ BUNDLE_NAME = DarkNEpic
 DarkNEpic_FILES = DNERootListController.m
 DarkNEpic_INSTALL_PATH = /Library/PreferenceBundles
 DarkNEpic_FRAMEWORKS = UIKit
-DarkNEpic_PRIVATE_FRAMEWORKS = Preferences
+DarkNEpic_PRIVATE_FRAMEWORKS = Preferences 
+DarkNEpic_LDFLAGS += -lCSColorPicker
 
 include $(THEOS_MAKE_PATH)/bundle.mk
 
